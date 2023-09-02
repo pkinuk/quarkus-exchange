@@ -63,4 +63,4 @@ jobs:
         run: |
           docker build -f src/main/docker/Dockerfile.native -t ghcr.io/${{ env.IMAGE_REPO }}exchange-quarkus:${{ env.PROJECT_VERSION }} .
           docker images | grep exchange-quarkus
-          docker push ghcr.io/${{ github.repository }}/my-app:${{ env.PROJECT_VERSION }}
+          docker push ghcr.io/${{ github.repository }}/exchange-quarkus:${{ env.PROJECT_VERSION }}
