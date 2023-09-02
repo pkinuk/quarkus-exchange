@@ -1,0 +1,100 @@
+name: pr-to-main
+
+on: pull_request
+
+jobs:
+  build:
+    runs-on: centos-self-hosted
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: Flutter-Tech/ppb-java@v1.0.0
+        with:
+          java-version: '17'
+
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4.4
+        with:
+          maven-version: 3.8.2
+
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build
+        run: ./mvnw -B verify -Dmaven.test.failure.ignore=true -Dcheckstyle.failOnViolation=false
+
+      - name: Test Report
+        uses: scacap/action-surefire-report@v1
+        with:
+          check_name: test
+
+      - name: Checkstyle analysis
+        uses: jwgmeligmeyling/checkstyle-github-action@master
+        with:
+          name: checkstyle
+          path: '**/checkstyle-result.xml'
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: jacoco-reports
+          path: ${{ github.workspace }}/**/target/jacoco-report*/
+
+  coverage:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      min-coverage-overall: 80.0
+      min-coverage-changed-files: 80.0
+    steps:
+      - name: Download coverage report
+        uses: actions/download-artifact@v3
+
+      - name: Find previous coverage comment
+        uses: peter-evans/find-comment@v1
+        id: fc
+        with:
+          issue-number: ${{ github.event.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "Overall Project"
+
+      - name: Delete previous comment
+        uses: jungwinter/comment@v1
+        with:
+          type: delete
+          comment_id: ${{ steps.fc.outputs.comment-id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ steps.fc.outputs.comment-id }}
+
+      - name: Collect Jacoco reports
+        uses: tj-actions/glob@v16
+        id: glob
+        with:
+          files: |
+            jacoco-reports/**/jacoco.xml
+            !jacoco-reports/launcher/
+          separator: ","
+
+      - name: Add coverage to PR
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.6.1
+        with:
+          paths: ${{ steps.glob.outputs.paths }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: ${{ env.min-coverage-overall }}
+          min-coverage-changed-files: ${{ env.min-coverage-changed-files }}
+
+      - name: Print coverage
+        run: |
+          echo "Overall coverage ${{ steps.jacoco.outputs.coverage-overall }}"
+          echo "Files coverage ${{ steps.jacoco.outputs.coverage-changed-files }}"
+
+      - name: Fail build if coverage below threshold
+        if: steps.jacoco.outputs.coverage-overall < 80.0 ||
+          steps.jacoco.outputs.coverage-changed-files < 80.0
+        run: exit 1
