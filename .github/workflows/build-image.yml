@@ -28,10 +28,6 @@ jobs:
         with:
           distribution: 'temurin' # See 'Supported distributions' for available options
           java-version: '17'
-      - run: java HelloWorldApp.java
-
-      - name: Docker login
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u Flutter-Global --password-stdin
 
       - name: Set up Maven
         uses: stCarolas/setup-maven@v4.4
