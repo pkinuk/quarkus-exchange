@@ -61,6 +61,6 @@ jobs:
       - name: Build and Push Docker Image
         id: build_and_push_docker_image
         run: |
-          docker build -f src/main/docker/Dockerfile.native -t ghcr.io/${{ env.IMAGE_REPO }}exchange-quarkus:${{ env.PROJECT_VERSION }} .
+          docker build -f src/main/docker/Dockerfile.native -t ghcr.io/${{ github.repository }}/exchange-quarkus:${{ env.PROJECT_VERSION }} .
           docker images | grep exchange-quarkus
           docker push ghcr.io/${{ github.repository }}/exchange-quarkus:${{ env.PROJECT_VERSION }}
