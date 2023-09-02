@@ -45,13 +45,13 @@ jobs:
         id: test_job
         run: mvn verify
 
-      - name: Debug
-        run: echo "Project Version is ${{ env.PROJECT_VERSION }}"
+      - name: Set PROJECT_VERSION
+        run: echo "PROJECT_VERSION=${{ env.VERSION }}" >> $GITHUB_ENV
 
       - name: Update version
         id: update_version
         run: |
-          echo "PROJECT_VERSION=${{ env.VERSION }}" >> $GITHUB_ENV
+          echo "Project Version is ${{ env.PROJECT_VERSION }}"
           mvn -B versions:set -DnewVersion=${{ env.PROJECT_VERSION }}
 
       - name: Build native executable
