@@ -45,6 +45,9 @@ jobs:
         id: test_job
         run: mvn verify
 
+      - name: Debug
+        run: echo "Project Version is ${{ env.PROJECT_VERSION }}"
+
       - name: Update version
         id: update_version
         run: |
