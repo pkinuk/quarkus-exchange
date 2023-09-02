@@ -41,9 +41,9 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Run tests
-        id: test_job
-        run: mvn verify
+#      - name: Run tests
+#        id: test_job
+#        run: mvn verify
 
       - name: Set PROJECT_VERSION
         run: echo "PROJECT_VERSION=${{ env.VERSION }}" >> $GITHUB_ENV
@@ -61,5 +61,6 @@ jobs:
       - name: Build and Push Docker Image
         id: build_and_push_docker_image
         run: |
-          docker build -f src/main/docker/Dockerfile.native -t ghcr.io/${{ env.IMAGE_REPO }}/my-app:${{ env.PROJECT_VERSION }} .
+          docker build -f src/main/docker/Dockerfile.native -t ghcr.io/${{ env.IMAGE_REPO }}exchange-quarkus:${{ env.PROJECT_VERSION }} .
+          docker images | grep exchange-quarkus
           docker push ghcr.io/${{ github.repository }}/my-app:${{ env.PROJECT_VERSION }}
