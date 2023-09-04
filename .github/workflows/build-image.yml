@@ -14,8 +14,8 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE_REPO: ghcr.io/
-  IMAGE_NAME: flutter-global/exchange-quarkus/eqs
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
   VERSION: 1.0-${{github.run_number}}
   DOCKER_REPOSITORY: docker.pkg.github.com/flutter-global/exchange-quarkus/eqs
 
@@ -58,9 +58,38 @@ jobs:
         id: build_native_executable
         run: ./mvnw package -Dnative -Dquarkus.native.container-build=true
 
-      - name: Build and Push Docker Image
-        id: build_and_push_docker_image
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/exchange-quarkus:${{ env.PROJECT_VERSION }}
+          run: echo
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          file: src/main/docker/Dockerfile.native
+
+      - name: Docker test
+        id: docker_test
         run: |
-          docker build -f src/main/docker/Dockerfile.native -t ghcr.io/${{ github.repository }}/exchange-quarkus:${{ env.PROJECT_VERSION }} .
           docker images | grep exchange-quarkus
-          docker push ghcr.io/${{ github.repository }}/exchange-quarkus:${{ env.PROJECT_VERSION }}
+          echo "tags: ${{ steps.meta.outputs.tags }} "
+          echo "labels: ${{ steps.meta.outputs.labels }} "
+#      - name: Build and Push Docker Image
+#        id: build_and_push_docker_image
+#        run: |
+#          docker build -f src/main/docker/Dockerfile.native -t ghcr.io/${{ github.repository }}/exchange-quarkus:${{ env.PROJECT_VERSION }} .
+#          docker images | grep exchange-quarkus
+#          docker push ghcr.io/${{ github.repository }}/exchange-quarkus:${{ env.PROJECT_VERSION }}
