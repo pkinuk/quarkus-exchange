@@ -56,7 +56,8 @@ jobs:
 
       - name: Build native executable
         id: build_native_executable
-        run: ./mvnw package -Dnative -Dquarkus.native.container-build=true
+#        run: ./mvnw package -Dnative -Dquarkus.native.container-build=true
+        run: ./mvnw package -DskipTests
 
       - name: Log in to the Container registry
         uses: docker/login-action@v2
@@ -87,7 +88,8 @@ jobs:
           push: true
           tags: ${{ env.PROJECT_VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
-          file: src/main/docker/Dockerfile.native
+#          file: src/main/docker/Dockerfile.native
+          file: src/main/docker/Dockerfile.jvm
 
       - name: Docker test
         id: docker_test_2
