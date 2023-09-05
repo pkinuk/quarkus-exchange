@@ -61,8 +61,8 @@ jobs:
 
       - name: Build native executable
         id: build_native_executable
-#        run: ./mvnw package -Dnative -Dquarkus.native.container-build=true
-        run: ./mvnw package -DskipTests
+        run: ./mvnw package -Dnative -Dquarkus.native.container-build=true
+#        run: ./mvnw package -DskipTests
 
       - name: test github_token
         id: test_github_token
@@ -99,8 +99,8 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PROJECT_VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
-#          file: src/main/docker/Dockerfile.native
-          file: src/main/docker/Dockerfile.jvm
+          file: src/main/docker/Dockerfile.native
+#          file: src/main/docker/Dockerfile.jvm
 
       - name: Docker test
         id: docker_test_2
